@@ -17,6 +17,10 @@ import {
   CircleDot,
   Menu,
   X,
+  Trash2,
+  Users as UsersIcon,
+  LogOut,
+  Search,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -25,16 +29,19 @@ const NAV = [
   { label: "Live Monitoring", to: "/live", icon: Activity },
   { label: "Camera Feed", to: "/camera", icon: Camera },
   { label: "AI Prediction", to: "/ai", icon: Brain },
-  { label: "Waste Analytics", to: "/analytics", icon: BarChart3 },
+  { label: "Analytics", to: "/analytics", icon: BarChart3 },
   { label: "Reports", to: "/reports", icon: FileText },
   { label: "Alerts", to: "/alerts", icon: BellRing },
+  { label: "Bin Management", to: "/bins", icon: Trash2 },
   { label: "Device Management", to: "/devices", icon: Cpu },
+  { label: "Users", to: "/users", icon: UsersIcon },
   { label: "Settings", to: "/settings", icon: Settings },
 ] as const;
 
 function useNow() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -92,6 +99,15 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             </Link>
           );
         })}
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.href = "/";
+          }}
+          className="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-all hover:bg-danger/10 hover:text-danger"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          <span className="truncate">Logout</span>
+        </button>
       </nav>
 
       <div className="m-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-accent/5 to-transparent p-4">
@@ -109,21 +125,29 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
 function TopBar({ onMenu }: { onMenu: () => void }) {
   const now = useNow();
-  const dateStr = now.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const dateStr = now
+    ? now.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
+    : "—";
+  const timeStr = now
+    ? now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+    : "--:--:--";
 
   return (
     <header className="glass sticky top-0 z-30 flex items-center gap-3 rounded-2xl border border-primary/10 px-4 py-3">
       <button onClick={onMenu} className="lg:hidden text-muted-foreground">
         <Menu className="h-5 w-5" />
       </button>
-      <div className="hidden md:flex flex-col leading-tight">
-        <span className="font-mono text-sm font-semibold text-foreground">{timeStr}</span>
+      <div className="hidden md:flex flex-col leading-tight" suppressHydrationWarning>
+        <span className="font-mono text-sm font-semibold text-foreground" suppressHydrationWarning>{timeStr}</span>
         <span className="text-[11px] uppercase tracking-widest text-muted-foreground">{dateStr}</span>
+      </div>
+      <div className="relative ml-2 hidden flex-1 max-w-md md:block">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search bins, devices, areas, users…"
+          className="w-full rounded-xl border border-primary/10 bg-primary/5 py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
+        />
       </div>
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <StatusPill label="ESP32" ok />
