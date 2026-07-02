@@ -14,6 +14,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as CameraRouteImport } from './routes/camera'
+import { Route as BinsRouteImport } from './routes/bins'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as AiRouteImport } from './routes/ai'
@@ -44,6 +45,11 @@ const CameraRoute = CameraRouteImport.update({
   path: '/camera',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BinsRoute = BinsRouteImport.update({
+  id: '/bins',
+  path: '/bins',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   AiRoute: typeof AiRoute
   AlertsRoute: typeof AlertsRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  BinsRoute: typeof BinsRoute
   CameraRoute: typeof CameraRoute
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CameraRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bins': {
+      id: '/bins'
+      path: '/bins'
+      fullPath: '/bins'
+      preLoaderRoute: typeof BinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analytics': {
       id: '/analytics'
       path: '/analytics'
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiRoute: AiRoute,
   AlertsRoute: AlertsRoute,
   AnalyticsRoute: AnalyticsRoute,
+  BinsRoute: BinsRoute,
   CameraRoute: CameraRoute,
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
