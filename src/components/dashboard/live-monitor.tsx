@@ -1,7 +1,16 @@
 import { motion } from "framer-motion";
 import { Camera, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function LiveMonitor() {
+  const [ts, setTs] = useState<string>("");
+  useEffect(() => {
+    const update = () =>
+      setTs(new Date().toISOString().slice(0, 19).replace("T", " "));
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
   return (
     <div className="glass relative overflow-hidden rounded-2xl p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -61,8 +70,11 @@ export function LiveMonitor() {
           <div>CAM-01 · 1080p · 30fps</div>
           <div>LAT 42 ms</div>
         </div>
-        <div className="absolute right-3 top-3 font-mono text-[10px] uppercase tracking-widest text-primary/80">
-          {new Date().toISOString().slice(0, 19).replace("T", " ")}
+        <div
+          className="absolute right-3 top-3 font-mono text-[10px] uppercase tracking-widest text-primary/80"
+          suppressHydrationWarning
+        >
+          {ts}
         </div>
       </div>
 
