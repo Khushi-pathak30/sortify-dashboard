@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Activity, Wifi, Cloud, Ruler, Magnet, Radio, Cog } from "lucide-react";
-import { generateDevices, generateBins, WASTE_TYPES, WASTE_COLORS, type WasteType } from "@/lib/mock";
+import { WASTE_COLORS, type WasteType } from "@/lib/mock";
+import { sortifyApi, type LiveEvent, type Telemetry } from "@/lib/sortify-api";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/live")({
@@ -10,53 +11,96 @@ export const Route = createFileRoute("/live")({
   head: () => ({ meta: [{ title: "Live Monitoring — SORTIFY AI" }] }),
 });
 
-type Event = {
-  id: string;
-  waste: WasteType;
-  weight: number;
-  device: string;
-  area: string;
-  bin: string;
-  time: string;
-};
-
 function Page() {
-  const devices = useMemo(() => generateDevices(50), []);
-  const bins = useMemo(() => generateBins(120), []);
+  const [events, setEvents] = useState<LiveEvent[]>([]);
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+  const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [sensors, setSensors] = useState({
-    distance: 12, metal: 0, ir: 1, servo: 0, wifi: -55, cloud: true, objects: 0, avgTime: 78,
-  });
-
+  // Live events: prefer SSE, fall back to polling /api/live/events.
   useEffect(() => {
-    const tick = () => {
-      const d = devices[Math.floor(Math.random() * devices.length)]!;
-      const b = bins[Math.floor(Math.random() * bins.length)]!;
-      const waste = WASTE_TYPES[Math.floor(Math.random() * WASTE_TYPES.length)]!;
-      const e: Event = {
-        id: Math.random().toString(36).slice(2, 9),
-        waste,
-        weight: +(0.05 + Math.random() * 1.6).toFixed(2),
-        device: d.id, area: d.area, bin: b.id,
-        time: new Date().toLocaleTimeString([], { hour12: false }),
-      };
-      setEvents((prev) => [e, ...prev].slice(0, 12));
-      setSensors({
-        distance: Math.floor(2 + Math.random() * 30),
-        metal: waste === "Metal" ? 1 : 0,
-        ir: Math.random() > 0.1 ? 1 : 0,
-        servo: [0, 45, 90, 135, 180][Math.floor(Math.random() * 5)]!,
-        wifi: -30 - Math.floor(Math.random() * 60),
-        cloud: Math.random() > 0.05,
-        objects: (Math.floor(Math.random() * 3) + 1),
-        avgTime: 40 + Math.floor(Math.random() * 120),
+    let cancelled = false;
+    let es: EventSource | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const pushEvent = (e: LiveEvent) => {
+      setEvents((prev) => {
+        if (prev.some((p) => p.id === e.id)) return prev;
+        return [e, ...prev].slice(0, 12);
       });
     };
+
+    const startPolling = () => {
+      let since = Date.now();
+      const tick = async () => {
+        try {
+          const res = await sortifyApi.events(since, 12);
+          if (cancelled) return;
+          setConnected(true);
+          setError(null);
+          // API returns newest-first; push oldest first so latest lands on top.
+          const batch = [...res.data].reverse();
+          batch.forEach(pushEvent);
+          if (res.data[0]) since = res.data[0].timestamp;
+        } catch (err) {
+          if (cancelled) return;
+          setConnected(false);
+          setError((err as Error).message);
+        }
+      };
+      tick();
+      pollTimer = setInterval(tick, 2500);
+    };
+
+    try {
+      es = new EventSource(sortifyApi.streamUrl());
+      es.onopen = () => {
+        setConnected(true);
+        setError(null);
+      };
+      es.onmessage = (msg) => {
+        try {
+          const data = JSON.parse(msg.data) as LiveEvent;
+          pushEvent(data);
+        } catch {
+          /* ignore malformed */
+        }
+      };
+      es.onerror = () => {
+        setConnected(false);
+        es?.close();
+        es = null;
+        if (!pollTimer) startPolling();
+      };
+    } catch {
+      startPolling();
+    }
+
+    return () => {
+      cancelled = true;
+      es?.close();
+      if (pollTimer) clearInterval(pollTimer);
+    };
+  }, []);
+
+  // Sensor telemetry poll.
+  useEffect(() => {
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const t = await sortifyApi.telemetry();
+        if (!cancelled) setTelemetry(t);
+      } catch {
+        /* handled by events stream error state */
+      }
+    };
     tick();
-    const id = setInterval(tick, 2500);
-    return () => clearInterval(id);
-  }, [devices, bins]);
+    const id = setInterval(tick, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
 
   return (
     <AppShell>
@@ -68,8 +112,16 @@ function Page() {
             </h1>
             <p className="text-sm text-muted-foreground">Streaming detection events from all connected devices.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-success">
-            <span className="h-1.5 w-1.5 rounded-full bg-success pulse-dot" /> Streaming
+          <div
+            className={`flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-widest ${
+              connected
+                ? "border-success/30 bg-success/10 text-success"
+                : "border-danger/30 bg-danger/10 text-danger"
+            }`}
+            title={error ?? undefined}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-success pulse-dot" : "bg-danger"}`} />
+            {connected ? "Streaming" : "Disconnected"}
           </div>
         </div>
 
@@ -88,32 +140,41 @@ function Page() {
                     transition={{ duration: 0.6 }}
                     className="grid grid-cols-6 gap-2 py-2.5 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full" style={{ background: WASTE_COLORS[e.waste] }} />
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: WASTE_COLORS[e.waste as WasteType] ?? "#3bbff8" }}
+                      />
                       <span className="font-semibold text-foreground">{e.waste}</span>
                     </div>
-                    <div className="font-mono text-muted-foreground">{e.weight} kg</div>
-                    <div className="font-mono text-muted-foreground">{e.time}</div>
+                    <div className="font-mono text-muted-foreground">{e.weightKg} kg</div>
+                    <div className="font-mono text-muted-foreground" suppressHydrationWarning>
+                      {new Date(e.timestamp).toLocaleTimeString([], { hour12: false })}
+                    </div>
                     <div className="font-mono text-primary">{e.device}</div>
                     <div className="text-muted-foreground truncate">{e.bin}</div>
                     <div className="text-muted-foreground truncate">{e.area}</div>
                   </motion.div>
                 ))}
               </AnimatePresence>
-              {events.length === 0 && <div className="py-10 text-center text-sm text-muted-foreground">Waiting for detections…</div>}
+              {events.length === 0 && (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  {error ? `Backend unreachable: ${error}` : "Waiting for detections…"}
+                </div>
+              )}
             </div>
           </div>
 
           <div className="glass rounded-2xl p-5">
             <h3 className="font-semibold text-foreground">Sensor Telemetry</h3>
             <div className="mt-3 space-y-2">
-              <SensorRow icon={<Ruler className="h-4 w-4" />} label="Distance" value={`${sensors.distance} cm`} />
-              <SensorRow icon={<Magnet className="h-4 w-4" />} label="Metal" value={sensors.metal ? "Detected" : "None"} ok={!!sensors.metal} />
-              <SensorRow icon={<Radio className="h-4 w-4" />} label="IR Sensor" value={sensors.ir ? "Active" : "No signal"} ok={!!sensors.ir} />
-              <SensorRow icon={<Cog className="h-4 w-4" />} label="Servo" value={`${sensors.servo}°`} />
-              <SensorRow icon={<Wifi className="h-4 w-4" />} label="Wi-Fi" value={`${sensors.wifi} dBm`} ok={sensors.wifi > -70} />
-              <SensorRow icon={<Cloud className="h-4 w-4" />} label="Cloud" value={sensors.cloud ? "Connected" : "Down"} ok={sensors.cloud} />
-              <SensorRow icon={<Activity className="h-4 w-4" />} label="Objects" value={String(sensors.objects)} />
-              <SensorRow icon={<Activity className="h-4 w-4" />} label="Avg Processing" value={`${sensors.avgTime} ms`} />
+              <SensorRow icon={<Ruler className="h-4 w-4" />} label="Distance" value={telemetry ? `${telemetry.distanceCm} cm` : "—"} />
+              <SensorRow icon={<Magnet className="h-4 w-4" />} label="Metal" value={telemetry?.metalDetected ? "Detected" : "None"} ok={telemetry?.metalDetected} />
+              <SensorRow icon={<Radio className="h-4 w-4" />} label="IR Sensor" value={telemetry?.irActive ? "Active" : "No signal"} ok={telemetry?.irActive} />
+              <SensorRow icon={<Cog className="h-4 w-4" />} label="Servo" value={telemetry ? `${telemetry.servoAngle}°` : "—"} />
+              <SensorRow icon={<Wifi className="h-4 w-4" />} label="Wi-Fi" value={telemetry ? `${telemetry.wifiDbm} dBm` : "—"} ok={telemetry ? telemetry.wifiDbm > -70 : undefined} />
+              <SensorRow icon={<Cloud className="h-4 w-4" />} label="Cloud" value={telemetry?.cloudConnected ? "Connected" : "Down"} ok={telemetry?.cloudConnected} />
+              <SensorRow icon={<Activity className="h-4 w-4" />} label="Objects" value={telemetry ? String(telemetry.objectsInFrame) : "—"} />
+              <SensorRow icon={<Activity className="h-4 w-4" />} label="Avg Processing" value={telemetry ? `${telemetry.avgProcessingMs} ms` : "—"} />
             </div>
           </div>
         </div>
