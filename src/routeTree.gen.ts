@@ -20,6 +20,15 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiUsersRouteImport } from './routes/api/users'
+import { Route as ApiPredictionsRouteImport } from './routes/api/predictions'
+import { Route as ApiOverviewRouteImport } from './routes/api/overview'
+import { Route as ApiLiveRouteImport } from './routes/api/live'
+import { Route as ApiHistoryRouteImport } from './routes/api/history'
+import { Route as ApiDevicesRouteImport } from './routes/api/devices'
+import { Route as ApiBinsRouteImport } from './routes/api/bins'
+import { Route as ApiAreasRouteImport } from './routes/api/areas'
+import { Route as ApiAlertsRouteImport } from './routes/api/alerts'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -76,6 +85,51 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUsersRoute = ApiUsersRouteImport.update({
+  id: '/api/users',
+  path: '/api/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPredictionsRoute = ApiPredictionsRouteImport.update({
+  id: '/api/predictions',
+  path: '/api/predictions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOverviewRoute = ApiOverviewRouteImport.update({
+  id: '/api/overview',
+  path: '/api/overview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLiveRoute = ApiLiveRouteImport.update({
+  id: '/api/live',
+  path: '/api/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHistoryRoute = ApiHistoryRouteImport.update({
+  id: '/api/history',
+  path: '/api/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDevicesRoute = ApiDevicesRouteImport.update({
+  id: '/api/devices',
+  path: '/api/devices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBinsRoute = ApiBinsRouteImport.update({
+  id: '/api/bins',
+  path: '/api/bins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAreasRoute = ApiAreasRouteImport.update({
+  id: '/api/areas',
+  path: '/api/areas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAlertsRoute = ApiAlertsRouteImport.update({
+  id: '/api/alerts',
+  path: '/api/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +143,15 @@ export interface FileRoutesByFullPath {
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/api/alerts': typeof ApiAlertsRoute
+  '/api/areas': typeof ApiAreasRoute
+  '/api/bins': typeof ApiBinsRoute
+  '/api/devices': typeof ApiDevicesRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/overview': typeof ApiOverviewRoute
+  '/api/predictions': typeof ApiPredictionsRoute
+  '/api/users': typeof ApiUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +165,15 @@ export interface FileRoutesByTo {
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/api/alerts': typeof ApiAlertsRoute
+  '/api/areas': typeof ApiAreasRoute
+  '/api/bins': typeof ApiBinsRoute
+  '/api/devices': typeof ApiDevicesRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/overview': typeof ApiOverviewRoute
+  '/api/predictions': typeof ApiPredictionsRoute
+  '/api/users': typeof ApiUsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +188,15 @@ export interface FileRoutesById {
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
+  '/api/alerts': typeof ApiAlertsRoute
+  '/api/areas': typeof ApiAreasRoute
+  '/api/bins': typeof ApiBinsRoute
+  '/api/devices': typeof ApiDevicesRoute
+  '/api/history': typeof ApiHistoryRoute
+  '/api/live': typeof ApiLiveRoute
+  '/api/overview': typeof ApiOverviewRoute
+  '/api/predictions': typeof ApiPredictionsRoute
+  '/api/users': typeof ApiUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +212,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/users'
+    | '/api/alerts'
+    | '/api/areas'
+    | '/api/bins'
+    | '/api/devices'
+    | '/api/history'
+    | '/api/live'
+    | '/api/overview'
+    | '/api/predictions'
+    | '/api/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +234,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/users'
+    | '/api/alerts'
+    | '/api/areas'
+    | '/api/bins'
+    | '/api/devices'
+    | '/api/history'
+    | '/api/live'
+    | '/api/overview'
+    | '/api/predictions'
+    | '/api/users'
   id:
     | '__root__'
     | '/'
@@ -157,6 +256,15 @@ export interface FileRouteTypes {
     | '/reports'
     | '/settings'
     | '/users'
+    | '/api/alerts'
+    | '/api/areas'
+    | '/api/bins'
+    | '/api/devices'
+    | '/api/history'
+    | '/api/live'
+    | '/api/overview'
+    | '/api/predictions'
+    | '/api/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +279,15 @@ export interface RootRouteChildren {
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
+  ApiAlertsRoute: typeof ApiAlertsRoute
+  ApiAreasRoute: typeof ApiAreasRoute
+  ApiBinsRoute: typeof ApiBinsRoute
+  ApiDevicesRoute: typeof ApiDevicesRoute
+  ApiHistoryRoute: typeof ApiHistoryRoute
+  ApiLiveRoute: typeof ApiLiveRoute
+  ApiOverviewRoute: typeof ApiOverviewRoute
+  ApiPredictionsRoute: typeof ApiPredictionsRoute
+  ApiUsersRoute: typeof ApiUsersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +369,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/users': {
+      id: '/api/users'
+      path: '/api/users'
+      fullPath: '/api/users'
+      preLoaderRoute: typeof ApiUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/predictions': {
+      id: '/api/predictions'
+      path: '/api/predictions'
+      fullPath: '/api/predictions'
+      preLoaderRoute: typeof ApiPredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/overview': {
+      id: '/api/overview'
+      path: '/api/overview'
+      fullPath: '/api/overview'
+      preLoaderRoute: typeof ApiOverviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/live': {
+      id: '/api/live'
+      path: '/api/live'
+      fullPath: '/api/live'
+      preLoaderRoute: typeof ApiLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/history': {
+      id: '/api/history'
+      path: '/api/history'
+      fullPath: '/api/history'
+      preLoaderRoute: typeof ApiHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/devices': {
+      id: '/api/devices'
+      path: '/api/devices'
+      fullPath: '/api/devices'
+      preLoaderRoute: typeof ApiDevicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bins': {
+      id: '/api/bins'
+      path: '/api/bins'
+      fullPath: '/api/bins'
+      preLoaderRoute: typeof ApiBinsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/areas': {
+      id: '/api/areas'
+      path: '/api/areas'
+      fullPath: '/api/areas'
+      preLoaderRoute: typeof ApiAreasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/alerts': {
+      id: '/api/alerts'
+      path: '/api/alerts'
+      fullPath: '/api/alerts'
+      preLoaderRoute: typeof ApiAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +447,15 @@ const rootRouteChildren: RootRouteChildren = {
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
+  ApiAlertsRoute: ApiAlertsRoute,
+  ApiAreasRoute: ApiAreasRoute,
+  ApiBinsRoute: ApiBinsRoute,
+  ApiDevicesRoute: ApiDevicesRoute,
+  ApiHistoryRoute: ApiHistoryRoute,
+  ApiLiveRoute: ApiLiveRoute,
+  ApiOverviewRoute: ApiOverviewRoute,
+  ApiPredictionsRoute: ApiPredictionsRoute,
+  ApiUsersRoute: ApiUsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

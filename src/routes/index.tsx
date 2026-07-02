@@ -3,7 +3,13 @@ import { motion } from "framer-motion";
 import { Weight, Boxes, Target, Cpu, BellRing, HeartPulse, Truck, Gauge, WifiOff, Timer } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { KpiCard, LiveMonitor, SensorStatus, AiFlow, WasteCategories, Analytics, AlertsPanel, ModelInfo, ClassificationTable } from "@/components/dashboard";
-import { WASTE_COLORS } from "@/lib/mock";
+import { WASTE_COLORS, WASTE_TYPES } from "@/lib/mock";
+
+// Seeded so SSR and client render identical values (avoids hydration mismatch).
+const WASTE_TOTALS: Record<string, number> = WASTE_TYPES.reduce((acc, w, i) => {
+  acc[w] = 240 + ((i * 137) % 760);
+  return acc;
+}, {} as Record<string, number>);
 
 export const Route = createFileRoute("/")({ component: DashboardPage });
 
@@ -44,7 +50,7 @@ function DashboardPage() {
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{w}</span>
               </div>
               <div className="mt-1 font-mono text-lg font-bold text-foreground">
-                {Math.floor(200 + Math.random() * 800)} kg
+                {WASTE_TOTALS[w]} kg
               </div>
             </div>
           ))}
