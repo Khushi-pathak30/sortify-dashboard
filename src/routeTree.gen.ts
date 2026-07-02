@@ -9,16 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as LiveRouteImport } from './routes/live'
 import { Route as DevicesRouteImport } from './routes/devices'
 import { Route as CameraRouteImport } from './routes/camera'
+import { Route as BinsRouteImport } from './routes/bins'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -42,6 +49,11 @@ const DevicesRoute = DevicesRouteImport.update({
 const CameraRoute = CameraRouteImport.update({
   id: '/camera',
   path: '/camera',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BinsRoute = BinsRouteImport.update({
+  id: '/bins',
+  path: '/bins',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -70,22 +82,26 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,11 +109,13 @@ export interface FileRoutesById {
   '/ai': typeof AiRoute
   '/alerts': typeof AlertsRoute
   '/analytics': typeof AnalyticsRoute
+  '/bins': typeof BinsRoute
   '/camera': typeof CameraRoute
   '/devices': typeof DevicesRoute
   '/live': typeof LiveRoute
   '/reports': typeof ReportsRoute
   '/settings': typeof SettingsRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,33 +124,39 @@ export interface FileRouteTypes {
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
     | '/reports'
     | '/settings'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
     | '/reports'
     | '/settings'
+    | '/users'
   id:
     | '__root__'
     | '/'
     | '/ai'
     | '/alerts'
     | '/analytics'
+    | '/bins'
     | '/camera'
     | '/devices'
     | '/live'
     | '/reports'
     | '/settings'
+    | '/users'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -140,15 +164,24 @@ export interface RootRouteChildren {
   AiRoute: typeof AiRoute
   AlertsRoute: typeof AlertsRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  BinsRoute: typeof BinsRoute
   CameraRoute: typeof CameraRoute
   DevicesRoute: typeof DevicesRoute
   LiveRoute: typeof LiveRoute
   ReportsRoute: typeof ReportsRoute
   SettingsRoute: typeof SettingsRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -182,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/camera'
       fullPath: '/camera'
       preLoaderRoute: typeof CameraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bins': {
+      id: '/bins'
+      path: '/bins'
+      fullPath: '/bins'
+      preLoaderRoute: typeof BinsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -220,22 +260,14 @@ const rootRouteChildren: RootRouteChildren = {
   AiRoute: AiRoute,
   AlertsRoute: AlertsRoute,
   AnalyticsRoute: AnalyticsRoute,
+  BinsRoute: BinsRoute,
   CameraRoute: CameraRoute,
   DevicesRoute: DevicesRoute,
   LiveRoute: LiveRoute,
   ReportsRoute: ReportsRoute,
   SettingsRoute: SettingsRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
