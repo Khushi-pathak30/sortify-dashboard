@@ -1,8 +1,9 @@
 // Sortify backend API client — reads base URL from VITE_SORTIFY_API_URL.
-// Falls back to http://localhost:8000 (dev).
+// Falls back to https://sortify-backendnew.onrender.com (production).
 export const SORTIFY_API_URL =
   (import.meta.env.VITE_SORTIFY_API_URL as string | undefined)?.replace(/\/$/, "") ||
-  "http://localhost:8000";
+  "https://sortify-backendnew.onrender.com";
+
 
 export type LiveEvent = {
   id: string;
