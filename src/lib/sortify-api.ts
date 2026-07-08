@@ -57,6 +57,12 @@ export type LiveSummary = {
   } | null;
   avgProcessingMs: number;
   modelVersion: string;
+  totalWaste?: number;
+  metalWaste?: number;
+  wetWaste?: number;
+  dryWaste?: number;
+  awsStatus?: string;
+  esp32Status?: string;
 };
 
 export type CameraMeta = {

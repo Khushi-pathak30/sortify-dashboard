@@ -1,27 +1,45 @@
 import { Cpu, Camera, Radar, Magnet, Cog, Wifi, Cloud } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-
-const SENSORS: { name: string; icon: LucideIcon; online: boolean; detail: string }[] = [
-  { name: "ESP32", icon: Cpu, online: true, detail: "MCU · 240 MHz" },
-  { name: "Camera", icon: Camera, online: true, detail: "OV5640 · 1080p" },
-  { name: "IR Sensor", icon: Radar, online: true, detail: "TCRT5000" },
-  { name: "Metal Sensor", icon: Magnet, online: true, detail: "LDC1000" },
-  { name: "Servo Motor", icon: Cog, online: true, detail: "MG996R · 180°" },
-  { name: "Wi-Fi", icon: Wifi, online: true, detail: "−52 dBm" },
-  { name: "Cloud", icon: Cloud, online: false, detail: "Reconnecting…" },
-];
+import { useEffect, useState } from "react";
+import { sortifyApi, type Telemetry } from "@/lib/sortify-api";
 
 export function SensorStatus() {
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+
+  useEffect(() => {
+    const fetchTelemetry = async () => {
+      try {
+        const data = await sortifyApi.telemetry();
+        setTelemetry(data);
+      } catch (err) {
+        console.error("SensorStatus: failed to fetch telemetry:", err);
+      }
+    };
+    fetchTelemetry();
+    const id = setInterval(fetchTelemetry, 2500);
+    return () => clearInterval(id);
+  }, []);
+
+  const sensors: { name: string; icon: LucideIcon; online: boolean; detail: string }[] = [
+    { name: "ESP32", icon: Cpu, online: !!telemetry, detail: telemetry ? `MCU · ${telemetry.device}` : "Offline" },
+    { name: "Camera", icon: Camera, online: !!telemetry, detail: "OV5640 · 1080p" },
+    { name: "IR Sensor", icon: Radar, online: !!telemetry, detail: telemetry?.irActive ? "IR Active" : "No Signal" },
+    { name: "Metal Sensor", icon: Magnet, online: !!telemetry, detail: telemetry?.metalDetected ? "Metal Detected" : "Idle" },
+    { name: "Servo Motor", icon: Cog, online: !!telemetry, detail: telemetry ? `Angle: ${telemetry.servoAngle}°` : "Idle" },
+    { name: "Wi-Fi", icon: Wifi, online: !!telemetry, detail: telemetry ? `${telemetry.wifiDbm} dBm` : "Offline" },
+    { name: "Cloud", icon: Cloud, online: telemetry ? telemetry.cloudConnected : false, detail: telemetry?.cloudConnected ? "Connected" : "Disconnected" },
+  ];
+
   return (
     <div className="glass rounded-2xl p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-widest text-foreground">
           Real-Time Sensor Status
         </h3>
-        <span className="text-[11px] text-muted-foreground">7 devices</span>
+        <span className="text-[11px] text-muted-foreground">{sensors.length} devices</span>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
-        {SENSORS.map((s) => {
+        {sensors.map((s) => {
           const Icon = s.icon;
           return (
             <div

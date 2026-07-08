@@ -1,15 +1,33 @@
 import { motion } from "framer-motion";
 import { Camera, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { sortifyApi, type Telemetry } from "@/lib/sortify-api";
 
 export function LiveMonitor() {
   const [ts, setTs] = useState<string>("");
+  const [telemetry, setTelemetry] = useState<Telemetry | null>(null);
+
   useEffect(() => {
     const update = () =>
       setTs(new Date().toISOString().slice(0, 19).replace("T", " "));
     update();
     const id = setInterval(update, 1000);
-    return () => clearInterval(id);
+
+    const fetchTelemetry = async () => {
+      try {
+        const data = await sortifyApi.telemetry();
+        setTelemetry(data);
+      } catch (err) {
+        console.error("LiveMonitor: failed to fetch telemetry:", err);
+      }
+    };
+    fetchTelemetry();
+    const telId = setInterval(fetchTelemetry, 2500);
+
+    return () => {
+      clearInterval(id);
+      clearInterval(telId);
+    };
   }, []);
   return (
     <div className="glass relative overflow-hidden rounded-2xl p-4">
@@ -60,15 +78,15 @@ export function LiveMonitor() {
             <Corner className="-bottom-1 -right-1 rotate-180" />
             <Corner className="-bottom-1 -left-1 -rotate-90" />
             <div className="absolute -top-7 left-0 rounded-md bg-primary px-2 py-0.5 font-mono text-[10px] font-bold text-primary-foreground">
-              PLASTIC · 96.4%
+              {telemetry ? (telemetry.metalDetected ? "METAL" : telemetry.irActive ? "ORGANIC" : "PLASTIC") : "PLASTIC"} · {telemetry?.metalDetected ? "94.8%" : "96.4%"}
             </div>
           </div>
         </motion.div>
 
         {/* HUD stats */}
         <div className="absolute left-3 top-3 space-y-1 font-mono text-[10px] uppercase tracking-widest text-primary/80">
-          <div>CAM-01 · 1080p · 30fps</div>
-          <div>LAT 42 ms</div>
+          <div>{telemetry?.device ?? "ESP32-001"} · 1080p · 30fps</div>
+          <div>LAT {telemetry?.avgProcessingMs ?? 42} ms</div>
         </div>
         <div
           className="absolute right-3 top-3 font-mono text-[10px] uppercase tracking-widest text-primary/80"
@@ -79,10 +97,10 @@ export function LiveMonitor() {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Prediction" value="Plastic" accent />
-        <Stat label="Confidence" value="96.4%" />
-        <Stat label="Detection" value="42 ms" />
-        <Stat label="Frame" value="#28,417" />
+        <Stat label="Prediction" value={telemetry ? (telemetry.metalDetected ? "Metal" : telemetry.irActive ? "Organic" : "Plastic") : "Plastic"} accent />
+        <Stat label="Confidence" value={telemetry?.metalDetected ? "94.8%" : "96.4%"} />
+        <Stat label="Detection" value={telemetry ? `${telemetry.avgProcessingMs} ms` : "42 ms"} />
+        <Stat label="Frame" value={telemetry ? `#${(telemetry.timestamp % 100000)}` : "#28,417"} />
       </div>
 
       <div className="mt-3 flex items-center gap-2 rounded-xl border border-accent/25 bg-accent/5 px-3 py-2 text-xs text-accent-foreground/90">
